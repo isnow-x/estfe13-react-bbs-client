@@ -170,7 +170,12 @@ export default function Write({ isModifyMode, boardId, handleCancel }) {
         </Form.Group>
         <Form.Group controlId="formFile" className="mb-3">
           <Form.Label>이미지 첨부</Form.Label>
-          <Form.Control type="file" accept="image/*" onChange={handleImageChange} />
+          <Form.Control
+            type="file"
+            name="attachment"
+            accept="image/*"
+            onChange={handleImageChange}
+          />
         </Form.Group>
         <div className="d-flex gap-1 justify-content-end">
           <Button type="submit" variant="primary">
