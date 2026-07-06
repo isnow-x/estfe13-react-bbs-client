@@ -13,6 +13,8 @@ export default function Write({ isModifyMode, boardId, handleCancel }) {
     image: null,
   });
 
+  const [removeImage, setRemoveImage] = useState(false); // 기존 이미지 삭제 여부
+
   useEffect(() => {
     if (isModifyMode && boardId) {
       //boardId로 서버에 글 조회, 조회결과로 content 업데이트
@@ -34,6 +36,8 @@ export default function Write({ isModifyMode, boardId, handleCancel }) {
             title: data.title,
             content: data.content,
             date: data.date,
+            image_path: data.image_path || "", // 기존 이미지
+            image: null, // 새 이미지
           });
         })
         .catch(error => {
@@ -62,13 +66,21 @@ export default function Write({ isModifyMode, boardId, handleCancel }) {
     };
   };
 
-  const createFormData = validatedData => {
+  const createFormData = (validatedData, id) => {
     const formData = new FormData();
     formData.append("writer", validatedData.name);
     formData.append("title", validatedData.title);
     formData.append("content", validatedData.content);
+    if (id) {
+      formData.append("id", id);
+    }
     if (content.image) {
+      // 새 이미지
       formData.append("image", content.image);
+    }
+    if (removeImage) {
+      // 기존 이미지 지운다 true
+      formData.append("remove_image", "1");
     }
     return formData;
   };
@@ -96,17 +108,20 @@ export default function Write({ isModifyMode, boardId, handleCancel }) {
   const update = e => {
     e.preventDefault();
     const validatedData = validate(e);
+    console.log(validatedData);
     if (!validatedData) return;
 
-    const formData = createFormData(validatedData);
-
+    const formData = createFormData(validatedData, boardId);
+    console.log(formData);
+    // for (const [key, value] of formData.entries()) {
+    //   console.log(key, value);
+    // }
     axios
       .post(
         "http://localhost:3000/update",
-        {
-          ...formData,
-          id: boardId,
-        },
+
+        formData,
+
         {
           headers: { "Content-Type": "multipart/form-data" },
         },
@@ -177,6 +192,23 @@ export default function Write({ isModifyMode, boardId, handleCancel }) {
             onChange={handleImageChange}
           />
         </Form.Group>
+        {content.image_path && (
+          <div>
+            <img
+              src={`http://localhost:3000/${content.image_path}`}
+              alt={content.title}
+              style={{ maxWidth: "200px" }}
+            />
+            <Form.Check // prettier-ignore
+              type="checkbox"
+              id={`default-check`}
+              label="기존이미지 제거"
+              onChange={e => {
+                setRemoveImage(e.target.checked);
+              }}
+            />
+          </div>
+        )}
         <div className="d-flex gap-1 justify-content-end">
           <Button type="submit" variant="primary">
             입력
