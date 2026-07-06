@@ -10,6 +10,7 @@ export default function Write({ isModifyMode, boardId, handleCancel }) {
     name: "",
     title: "",
     content: "",
+    image: null,
   });
 
   useEffect(() => {
@@ -61,12 +62,28 @@ export default function Write({ isModifyMode, boardId, handleCancel }) {
     };
   };
 
+  const createFormData = validatedData => {
+    const formData = new FormData();
+    formData.append("writer", validatedData.name);
+    formData.append("title", validatedData.title);
+    formData.append("content", validatedData.content);
+    if (content.image) {
+      formData.append("image", content.image);
+    }
+    return formData;
+  };
+
   const write = e => {
     e.preventDefault();
-    const formData = validate(e);
-    if (!formData) return;
+    const validatedData = validate(e);
+    if (!validatedData) return;
+
+    const formData = createFormData(validatedData);
+
     axios
-      .post("http://localhost:3000/write", formData)
+      .post("http://localhost:3000/write", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      })
       .then(response => {
         navigate("/");
       })
@@ -78,13 +95,22 @@ export default function Write({ isModifyMode, boardId, handleCancel }) {
 
   const update = e => {
     e.preventDefault();
-    const formData = validate(e);
-    if (!formData) return;
+    const validatedData = validate(e);
+    if (!validatedData) return;
+
+    const formData = createFormData(validatedData);
+
     axios
-      .post("http://localhost:3000/update", {
-        ...formData,
-        id: boardId,
-      })
+      .post(
+        "http://localhost:3000/update",
+        {
+          ...formData,
+          id: boardId,
+        },
+        {
+          headers: { "Content-Type": "multipart/form-data" },
+        },
+      )
       .then(() => {
         handleCancel();
         navigate("/");
@@ -99,6 +125,15 @@ export default function Write({ isModifyMode, boardId, handleCancel }) {
     handleCancel();
     navigate("/");
   };
+
+  const handleImageChange = e => {
+    const file = e.target.files[0];
+    setContent(prev => ({
+      ...prev,
+      image: file,
+    }));
+  };
+
   return (
     <>
       <h2 className="mb-3">{isModifyMode ? "글수정" : "글쓰기"}</h2>
@@ -132,6 +167,10 @@ export default function Write({ isModifyMode, boardId, handleCancel }) {
             rows={3}
             required
           />
+        </Form.Group>
+        <Form.Group controlId="formFile" className="mb-3">
+          <Form.Label>이미지 첨부</Form.Label>
+          <Form.Control type="file" accept="image/*" onChange={handleImageChange} />
         </Form.Group>
         <div className="d-flex gap-1 justify-content-end">
           <Button type="submit" variant="primary">
