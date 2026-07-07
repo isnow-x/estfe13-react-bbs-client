@@ -117,15 +117,9 @@ export default function Write({ isModifyMode, boardId, handleCancel }) {
     //   console.log(key, value);
     // }
     axios
-      .post(
-        "http://localhost:3000/update",
-
-        formData,
-
-        {
-          headers: { "Content-Type": "multipart/form-data" },
-        },
-      )
+      .post("http://localhost:3000/update", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      })
       .then(() => {
         handleCancel();
         navigate("/");
